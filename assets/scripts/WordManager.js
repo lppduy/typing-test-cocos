@@ -1,41 +1,51 @@
-// Learn cc.Class:
-//  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/class.html
-//  - [English] http://docs.cocos2d-x.org/creator/manual/en/scripting/class.html
-// Learn Attribute:
-//  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/reference/attributes.html
-//  - [English] http://docs.cocos2d-x.org/creator/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
-//  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
+const { generateText } = require('../utils/generateText');
+const { calculateWPM } = require('../utils/calculateWPM');
 
 cc.Class({
-    extends: cc.Component,
+  extends: cc.Component,
 
-    properties: {
-        // foo: {
-        //     // ATTRIBUTES:
-        //     default: null,        // The default value will be used only when the component attaching
-        //                           // to a node for the first time
-        //     type: cc.SpriteFrame, // optional, default is typeof default
-        //     serializable: true,   // optional, default is true
-        // },
-        // bar: {
-        //     get () {
-        //         return this._bar;
-        //     },
-        //     set (value) {
-        //         this._bar = value;
-        //     }
-        // },
-    },
+  properties: {
+    inputBox: cc.EditBox,
+    textLabel: cc.Label,
+  },
 
-    // LIFE-CYCLE CALLBACKS:
+  // LIFE-CYCLE CALLBACKS:
 
-    // onLoad () {},
+  onLoad() {
+    this.count = 0;
+    this.frequency = 1;
+    this.secondsPassed = 0;
+    this.totalTime = 60;
+    this.sampleText = generateText();
 
-    start () {
+    this.textLabel.string = this.sampleText;
+    this.inputBox.node.on('editing-did-ended', this.checkWPM, this);
+  },
+  checkWPM() {
+    // Lấy văn bản từ EditBox
+    let inputText = this.inputBox.string;
+    console.log(this.sampleText);
+    console.log(inputText);
 
-    },
+    this.wpm = calculateWPM(this.sampleText, inputText) - 1;
+    console.log('wpm', this.wpm);
+  },
 
-    // update (dt) {},
+  //   start() {},
+
+  update(dt) {
+    if (this.secondsPassed < this.totalTime) {
+      this.count += dt;
+
+      if (this.count >= this.frequency) {
+        this.count -= this.frequency;
+
+        this.secondsPassed += 1;
+      }
+    }
+    if (this.secondsPassed === this.totalTime) {
+      this.textLabel.fontSize = 18;
+      this.textLabel.string = `Your WPM: ${this.wpm} `;
+    }
+  },
 });
